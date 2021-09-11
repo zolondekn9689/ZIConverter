@@ -18,6 +18,7 @@ using System.IO;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Drawing.Imaging;
 using System.Threading;
+using WpfApp2.ImageBuilders;
 
 namespace WpfApp2
 {
@@ -26,20 +27,61 @@ namespace WpfApp2
     /// </summary>
     public partial class MainWindow : Window
     {
-        private List<string> files;
-        private string dir;
-        private string Selected_Filename;
+        
+        
+        private OpenFileDialog dialog;
+        private ImageFormat currentFormatSelected;
 
         public MainWindow()
         {
             InitializeComponent();
-            files = new List<string>();
+            
         }
 
-        
+        /// <summary>
+        /// Makes all menu options visible.
+        /// </summary>
+        private void Enable()
+        {
+            menu_option_bmp.Visibility = Visibility.Visible;
+            menu_option_jpg.Visibility = Visibility.Visible;
+            menu_option_tif.Visibility = Visibility.Visible;
+            menu_option_png.Visibility = Visibility.Visible;
+        }
         
 
+        /// <summary>
+        /// disables the image format that is being used.
+        /// </summary>
+        private void Cancelize()
+        {
 
+            Enable();
+
+            if (currentFormatSelected == ImageFormat.Jpeg)
+            {
+                menu_option_jpg.Visibility = Visibility.Hidden;
+                menu_option_jpg.IsChecked = false;
+            } 
+            if (currentFormatSelected == ImageFormat.Png)
+            {
+                menu_option_png.Visibility = Visibility.Hidden;
+                menu_option_png.IsChecked = false;
+
+            }
+            if (currentFormatSelected == ImageFormat.Bmp)
+            {
+                menu_option_bmp.Visibility = Visibility.Hidden;
+                menu_option_bmp.IsChecked = false;
+            }
+            if (currentFormatSelected == ImageFormat.Tiff)
+            {
+                menu_option_tif.Visibility = Visibility.Hidden;
+                menu_option_tif.IsChecked = false;
+            }
+
+        }
+        
         
 
         // Ask user to find destinated file location.
@@ -57,47 +99,48 @@ namespace WpfApp2
             openFileDialog.ValidateNames = false;
             openFileDialog.CheckFileExists = false;
             openFileDialog.CheckPathExists = true;
-
+            
+            
 
             if (openFileDialog.ShowDialog() == true)
             {
                 
                 string path = System.IO.Path.GetDirectoryName(openFileDialog.FileName);
-                this.Selected_Filename = openFileDialog.SafeFileName;
-                
+                this.dialog = openFileDialog;
                 folderBox.Text = path;
-                dir = path;
             }
+            currentFormatSelected = FileParser.GetImageFormat(openFileDialog.FileName);
+            Cancelize();
         }
 
 
 
 
 
-        // Convert entire folder.
+        // Convert entire folder of images.
         private void Button_ConvertClick(object sender, RoutedEventArgs e)
         {
             
             if (menu_option_jpg.IsChecked)
             {
-                MakeDirectory(ImageFormat.Jpeg);
+                //MakeDirectory(ImageFormat.Jpeg);
 
                 Thread t = new Thread(() => GenerateFile(ImageFormat.Jpeg));
                 t.Start();
-
-                
 
             }
             if (menu_option_png.IsChecked)
             {
                 
                 // Make a PNG directory and navigate through the files.
-                MakeDirectory(ImageFormat.Png);
                 Thread t = new Thread(() => GenerateFile(ImageFormat.Png));
                 t.Start();
+            }
 
-                
-
+            if (menu_option_bmp.IsChecked)
+            {
+                Thread t = new Thread(() => GenerateFile(ImageFormat.Bmp));
+                t.Start();
             }
 
             if (menu_option_tif.IsChecked)
@@ -111,58 +154,72 @@ namespace WpfApp2
         }
 
 
-        public bool MakeDirectory(ImageFormat formatType)
-        {
-            
-
-            string newDir = dir + @"\" + formatType.ToString();
-
-            // Make directory
-            if (!Directory.Exists(newDir))
-            {
-                
-                Directory.CreateDirectory(newDir);
-                
-
-                return true;
-            }
-            else
-            {
-                MessageBox.Show("A directory already exists. ");
-                //TODO Add a menu setting that decide what to do here.
-                return false;
-            }
-
-        }
 
 
 
 
         /**
          * Use this to go through files and generate a file.
-         * */
+         */
         private void GenerateFile(ImageFormat imageType)
         {
+            string dir = System.IO.Path.GetDirectoryName(this.dialog.FileName);
             string[] filePaths = Directory.GetFiles(dir, "*.tif",
                                         SearchOption.TopDirectoryOnly);
 
+            ImageBuilder builder = null;
 
-            foreach (string x in filePaths)
+            if (imageType == ImageFormat.Png)
+                builder = new PngBuilder();
+            if (imageType == ImageFormat.Jpeg)
+                builder = new JpgBuilder();
+            if (imageType == ImageFormat.Bmp)
+                builder = new BmpBuilder();
+
+
+
+            if (builder != null)
             {
-                ImageConversion.ConvertImage(dir, FileParser.GetFileName(x), imageType);
-                if (FileParser.ExistsChildImage(dir, FileParser.GetFileName(x), imageType))
+                foreach (string x in filePaths)
                 {
-                    
-                }
-                else
-                {
-                    MessageBox.Show("Duplicate Error");
-                    return;
+                    builder.BuildImageInDirectory(x);
                 }
 
+                MessageBox.Show("Conversion Completed Successfully!");
             }
 
         }
 
+
+
+
+        /***
+         * This click handler converts one image.
+         * */
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            string path = System.IO.Path.GetFullPath(dialog.FileName);
+
+
+            if (menu_option_jpg.IsChecked)
+            {
+                JpgBuilder builder = new JpgBuilder();
+                builder.BuildImageInDirectory(path);
+            }
+
+            if (menu_option_png.IsChecked)
+            {
+                PngBuilder builder = new PngBuilder();
+                builder.BuildImageInDirectory(path);
+            }
+            if (menu_option_bmp.IsChecked)
+            {
+                BmpBuilder builder = new BmpBuilder();
+                builder.BuildImageInDirectory(path);
+            }
+
+        }
+
+        
     }
 }

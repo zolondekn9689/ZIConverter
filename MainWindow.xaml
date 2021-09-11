@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp2"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="800" Width="800">
     <DockPanel >
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
@@ -14,16 +14,12 @@
             <MenuItem Header="_Export Options">
                 
                 <MenuItem x:Name="menu_option_jpg" IsChecked="True" IsCheckable="True" Header="Jpg"></MenuItem>
-                <MenuItem x:Name="menu_option_png" IsCheckable="True" Header="png"/>
+                <MenuItem x:Name="menu_option_png" IsCheckable="True" Header="Png"/>
+                <MenuItem x:Name="menu_option_bmp" IsCheckable="True" Header="Bmp"/>
                 <MenuItem x:Name="menu_option_tif" IsCheckable="True" Header="tif"/>
 
             </MenuItem>
-            <MenuItem Header="_File Selection Options">
-
-                <MenuItem x:Name="folderSelectMenuItem" IsCheckable="True" IsChecked="True" Header="Select By Folder"/>
-                <MenuItem x:Name="fileSelectMenuItem" IsCheckable="True" Header="Select By File"/>
-                
-            </MenuItem>
+            
 
         </Menu>
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
@@ -32,14 +28,18 @@
             <TextBox x:Name="folderBox" AllowDrop="True" MinWidth="400"/>
             
         </StackPanel>
+        
 
-        <ToolBarPanel DockPanel.Dock="Bottom">
+        <ToolBarPanel DockPanel.Dock="Bottom" Background="Beige">
             <ToolBar>
                 
                 <!--<Button Content="Convert File" Click="Button_ConvertClick"/>-->
-                <Button Content="Convert Entire Folder" Click="Button_ConvertClick"/>
+                <Button Content="Convert Entire Folder" Click="Button_ConvertClick" ToolTip="Convert Entire Folder" BorderThickness="2" BorderBrush="Black" Margin="0 0 5 0"/>
+                <Button Content="Convert File" Click="Button_Click_1" BorderBrush="Black" BorderThickness="2" ToolTip="Convert individual file."/>
             </ToolBar>
         </ToolBarPanel>
-        <Canvas Background="AliceBlue" AllowDrop="True" />
+
+        <Canvas Background="AliceBlue"/>
+
     </DockPanel>
 </Window>
